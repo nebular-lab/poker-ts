@@ -205,6 +205,12 @@ var Poker = /** @class */ (function () {
     Poker.prototype.standUp = function (seatIndex) {
         this._table.standUp(seatIndex);
     };
+    Poker.prototype.getActionHistory = function () {
+        return this._table.getActionHistory();
+    };
+    Poker.prototype.getCurrentSequence = function () {
+        return this._table.getCurrentSequence();
+    };
     return Poker;
 }());
 exports.default = Poker;

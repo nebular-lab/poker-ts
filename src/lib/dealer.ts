@@ -14,6 +14,19 @@ import Hand from './hand'
 import { findIndexAdjacent, nextOrWrap } from '../util/array'
 import Card from './card'
 
+export type ActionRecord = {
+    seatIndex: number
+    street: 'preflop' | 'flop' | 'turn' | 'river'
+    seq: number
+    actionType: 'fold' | 'check' | 'call' | 'bet' | 'raise'
+    amount: number
+    meta: {
+        pot: { size: number, eligiblePlayers: number[] }
+        betPercentage?: number
+        raisePercentage?: number
+    }
+}
+
 export class ActionRange {
     action: Action = Action.FOLD // You can always fold
     chipRange?: ChipRange
@@ -51,6 +64,8 @@ export default class Dealer {
     private _bettingRoundsCompleted: boolean = false
     private _potManager: PotManager
     private _winners: [SeatIndex, Hand, HoleCards][][]
+    private _actionHistory: ActionRecord[] = []
+    private _sequenceCounter: number = 0
 
     constructor(players: SeatArray, button: SeatIndex, forcedBets: ForcedBets, deck: Deck, communityCards: CommunityCards, numSeats: number = 9) {
         this._players = players
@@ -177,6 +192,8 @@ export default class Dealer {
         this._bettingRoundsCompleted = false
         this._roundOfBetting = RoundOfBetting.PREFLOP
         this._winners = []
+        this._actionHistory = []
+        this._sequenceCounter = 0
         this.collectAnte()
         const bigBlindSeat = this.postBlinds()
         const firstAction = this.nextOrWrap(bigBlindSeat)
@@ -191,6 +208,43 @@ export default class Dealer {
         assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
         assert(this.legalActions().contains(action, bet), 'Action must be legal')
         assert(this._bettingRound !== null)
+
+        const seatIndex = this.playerToAct()
+        const street = this.getStreetName()
+        const amount = bet ?? 0
+        const pot = this.pots()[0]
+
+        const meta: ActionRecord['meta'] = {
+            pot: { size: pot.size(), eligiblePlayers: pot.eligiblePlayers() },
+        }
+
+        const actionType = this.getActionTypeName(action)
+        
+        if (actionType === 'bet' && amount > 0 && pot.size() > 0) {
+            meta.betPercentage = Number.parseFloat(
+                ((amount / pot.size()) * 100).toFixed(2)
+            )
+        } else if (actionType === 'raise' && amount > 0) {
+            const callAmount = this.calculateCallAmount(seatIndex)
+            const sumBetSize = this._players.reduce((acc, p) => acc + (p?.betSize() || 0), 0)
+            const potAfterCall = pot.size() + sumBetSize + callAmount
+            const additional = amount - callAmount
+            
+            if (additional > 0) {
+                meta.raisePercentage = Number.parseFloat(
+                    ((additional / potAfterCall) * 100).toFixed(2)
+                )
+            }
+        }
+
+        this._actionHistory.push({
+            seatIndex,
+            street,
+            seq: this._sequenceCounter++,
+            actionType,
+            amount,
+            meta,
+        })
 
         if (action & Action.CHECK || action & Action.CALL) {
             this._bettingRound.actionTaken(BettingRoundAction.MATCH)
@@ -360,5 +414,51 @@ export default class Dealer {
             cards.push(this._deck.draw())
         }
         this._communityCards.deal(cards)
+    }
+
+    private getStreetName(): 'preflop' | 'flop' | 'turn' | 'river' {
+        switch (this._roundOfBetting) {
+            case RoundOfBetting.PREFLOP:
+                return 'preflop'
+            case RoundOfBetting.FLOP:
+                return 'flop'
+            case RoundOfBetting.TURN:
+                return 'turn'
+            case RoundOfBetting.RIVER:
+                return 'river'
+            default:
+                return 'preflop'
+        }
+    }
+
+    private getActionTypeName(action: Action): 'fold' | 'check' | 'call' | 'bet' | 'raise' {
+        if (action & Action.FOLD) return 'fold'
+        if (action & Action.CHECK) return 'check'
+        if (action & Action.CALL) return 'call'
+        if (action & Action.BET) return 'bet'
+        if (action & Action.RAISE) return 'raise'
+        return 'fold'
+    }
+
+    private calculateCallAmount(seatIndex: number): number {
+        const seat = this._players[seatIndex]
+        if (!seat) return 0
+
+        const currentMaxBet = this._players
+            .filter((p): p is NonNullable<typeof p> => p !== null)
+            .map((p) => p.betSize())
+            .reduce((max, b) => Math.max(max, b), 0)
+
+        const needed = currentMaxBet - seat.betSize()
+        if (needed <= 0) return 0
+        return Math.min(needed, seat.stack())
+    }
+
+    getActionHistory(): ActionRecord[] {
+        return this._actionHistory
+    }
+
+    getCurrentSequence(): number {
+        return this._sequenceCounter - 1
     }
 }

@@ -2,7 +2,7 @@ import { SeatArray } from 'types/seat-array';
 import { SeatIndex } from 'types/seat-index';
 import { ForcedBets } from 'types/forced-bets';
 import CommunityCards, { RoundOfBetting } from './community-cards';
-import { Action, ActionRange } from './dealer';
+import { Action, ActionRange, ActionRecord } from './dealer';
 import Pot from './pot';
 import { HoleCards } from 'types/hole-cards';
 import { Chips } from 'types/chips';
@@ -64,4 +64,6 @@ export default class Table {
     private updateTablePlayers;
     private singleActivePlayerRemaining;
     private standUpBustedPlayers;
+    getActionHistory(): ActionRecord[];
+    getCurrentSequence(): number;
 }

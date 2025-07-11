@@ -2,7 +2,7 @@
 import Table, { AutomaticAction as AutomaticActionFlag } from '../lib/table'
 import { RoundOfBetting } from '../lib/community-cards'
 import { CardRank, CardSuit } from '../lib/card'
-import { Action as ActionFlag } from '../lib/dealer'
+import { Action as ActionFlag, ActionRecord } from '../lib/dealer'
 import ChipRange from '../lib/chip-range'
 import { SeatIndex } from 'types/seat-index'
 import { HandRanking } from '../lib/hand'
@@ -15,6 +15,7 @@ export type Card = {
 export type AutomaticAction = 'fold' | 'check/fold' | 'check' | 'call' | 'call any' | 'all-in'
 export type Action = 'fold' | 'check' | 'call' | 'bet' | 'raise'
 
+
 const cardMapper: (card: { rank: CardRank, suit: CardSuit }) => Card = card => ({
     // @ts-ignore
     rank: CardRank[card.rank].replace(/^_/, ''),
@@ -22,7 +23,7 @@ const cardMapper: (card: { rank: CardRank, suit: CardSuit }) => Card = card => (
     suit: CardSuit[card.suit].toLowerCase(),
 })
 
-const seatArrayMapper = player => player === null
+const seatArrayMapper = (player: any) => player === null
     ? null
     : {
         totalChips: player.totalChips(),
@@ -219,5 +220,13 @@ export default class Poker {
 
     standUp(seatIndex: number): void {
         this._table.standUp(seatIndex)
+    }
+
+    getActionHistory(): ActionRecord[] {
+        return this._table.getActionHistory()
+    }
+
+    getCurrentSequence(): number {
+        return this._table.getCurrentSequence()
     }
 }

@@ -8,6 +8,21 @@ import CommunityCards, { RoundOfBetting } from './community-cards';
 import { HoleCards } from 'types/hole-cards';
 import Pot from './pot';
 import Hand from './hand';
+export declare type ActionRecord = {
+    seatIndex: number;
+    street: 'preflop' | 'flop' | 'turn' | 'river';
+    seq: number;
+    actionType: 'fold' | 'check' | 'call' | 'bet' | 'raise';
+    amount: number;
+    meta: {
+        pot: {
+            size: number;
+            eligiblePlayers: number[];
+        };
+        betPercentage?: number;
+        raisePercentage?: number;
+    };
+};
 export declare class ActionRange {
     action: Action;
     chipRange?: ChipRange;
@@ -34,6 +49,8 @@ export default class Dealer {
     private _bettingRoundsCompleted;
     private _potManager;
     private _winners;
+    private _actionHistory;
+    private _sequenceCounter;
     constructor(players: SeatArray, button: SeatIndex, forcedBets: ForcedBets, deck: Deck, communityCards: CommunityCards, numSeats?: number);
     static isValid(action: Action): boolean;
     static isAggressive(action: Action): boolean;
@@ -61,4 +78,9 @@ export default class Dealer {
     private postBlinds;
     private dealHoleCards;
     private dealCommunityCards;
+    private getStreetName;
+    private getActionTypeName;
+    private calculateCallAmount;
+    getActionHistory(): ActionRecord[];
+    getCurrentSequence(): number;
 }

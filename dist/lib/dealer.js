@@ -66,6 +66,8 @@ var Dealer = /** @class */ (function () {
         this._handInProgress = false;
         this._roundOfBetting = community_cards_1.RoundOfBetting.PREFLOP;
         this._bettingRoundsCompleted = false;
+        this._actionHistory = [];
+        this._sequenceCounter = 0;
         this._players = players;
         this._button = button;
         this._forcedBets = forcedBets;
@@ -176,6 +178,8 @@ var Dealer = /** @class */ (function () {
         this._bettingRoundsCompleted = false;
         this._roundOfBetting = community_cards_1.RoundOfBetting.PREFLOP;
         this._winners = [];
+        this._actionHistory = [];
+        this._sequenceCounter = 0;
         this.collectAnte();
         var bigBlindSeat = this.postBlinds();
         var firstAction = this.nextOrWrap(bigBlindSeat);
@@ -189,6 +193,34 @@ var Dealer = /** @class */ (function () {
         assert_1.default(this.bettingRoundInProgress(), 'Betting round must be in progress');
         assert_1.default(this.legalActions().contains(action, bet), 'Action must be legal');
         assert_1.default(this._bettingRound !== null);
+        var seatIndex = this.playerToAct();
+        var street = this.getStreetName();
+        var amount = bet !== null && bet !== void 0 ? bet : 0;
+        var pot = this.pots()[0];
+        var meta = {
+            pot: { size: pot.size(), eligiblePlayers: pot.eligiblePlayers() },
+        };
+        var actionType = this.getActionTypeName(action);
+        if (actionType === 'bet' && amount > 0 && pot.size() > 0) {
+            meta.betPercentage = Number.parseFloat(((amount / pot.size()) * 100).toFixed(2));
+        }
+        else if (actionType === 'raise' && amount > 0) {
+            var callAmount = this.calculateCallAmount(seatIndex);
+            var sumBetSize = this._players.reduce(function (acc, p) { return acc + ((p === null || p === void 0 ? void 0 : p.betSize()) || 0); }, 0);
+            var potAfterCall = pot.size() + sumBetSize + callAmount;
+            var additional = amount - callAmount;
+            if (additional > 0) {
+                meta.raisePercentage = Number.parseFloat(((additional / potAfterCall) * 100).toFixed(2));
+            }
+        }
+        this._actionHistory.push({
+            seatIndex: seatIndex,
+            street: street,
+            seq: this._sequenceCounter++,
+            actionType: actionType,
+            amount: amount,
+            meta: meta,
+        });
         if (action & Action.CHECK || action & Action.CALL) {
             this._bettingRound.actionTaken(betting_round_1.Action.MATCH);
         }
@@ -356,6 +388,52 @@ var Dealer = /** @class */ (function () {
             cards.push(this._deck.draw());
         }
         this._communityCards.deal(cards);
+    };
+    Dealer.prototype.getStreetName = function () {
+        switch (this._roundOfBetting) {
+            case community_cards_1.RoundOfBetting.PREFLOP:
+                return 'preflop';
+            case community_cards_1.RoundOfBetting.FLOP:
+                return 'flop';
+            case community_cards_1.RoundOfBetting.TURN:
+                return 'turn';
+            case community_cards_1.RoundOfBetting.RIVER:
+                return 'river';
+            default:
+                return 'preflop';
+        }
+    };
+    Dealer.prototype.getActionTypeName = function (action) {
+        if (action & Action.FOLD)
+            return 'fold';
+        if (action & Action.CHECK)
+            return 'check';
+        if (action & Action.CALL)
+            return 'call';
+        if (action & Action.BET)
+            return 'bet';
+        if (action & Action.RAISE)
+            return 'raise';
+        return 'fold';
+    };
+    Dealer.prototype.calculateCallAmount = function (seatIndex) {
+        var seat = this._players[seatIndex];
+        if (!seat)
+            return 0;
+        var currentMaxBet = this._players
+            .filter(function (p) { return p !== null; })
+            .map(function (p) { return p.betSize(); })
+            .reduce(function (max, b) { return Math.max(max, b); }, 0);
+        var needed = currentMaxBet - seat.betSize();
+        if (needed <= 0)
+            return 0;
+        return Math.min(needed, seat.stack());
+    };
+    Dealer.prototype.getActionHistory = function () {
+        return this._actionHistory;
+    };
+    Dealer.prototype.getCurrentSequence = function () {
+        return this._sequenceCounter - 1;
     };
     return Dealer;
 }());

@@ -411,6 +411,14 @@ var Table = /** @class */ (function () {
             }
         }
     };
+    Table.prototype.getActionHistory = function () {
+        assert_1.default(this._dealer !== undefined);
+        return this._dealer.getActionHistory();
+    };
+    Table.prototype.getCurrentSequence = function () {
+        assert_1.default(this._dealer !== undefined);
+        return this._dealer.getCurrentSequence();
+    };
     return Table;
 }());
 exports.default = Table;

@@ -3,7 +3,7 @@ import { SeatIndex } from 'types/seat-index'
 import { ForcedBets } from 'types/forced-bets'
 import Deck from './deck'
 import CommunityCards, { RoundOfBetting } from './community-cards'
-import Dealer, { Action, ActionRange } from './dealer'
+import Dealer, { Action, ActionRange, ActionRecord } from './dealer'
 import assert from 'assert'
 import Pot from './pot'
 import { HoleCards } from 'types/hole-cards'
@@ -462,5 +462,15 @@ export default class Table {
                 this._tablePlayers[s] = null
             }
         }
+    }
+
+    getActionHistory(): ActionRecord[] {
+        assert(this._dealer !== undefined)
+        return this._dealer.getActionHistory()
+    }
+
+    getCurrentSequence(): number {
+        assert(this._dealer !== undefined)
+        return this._dealer.getCurrentSequence()
     }
 }

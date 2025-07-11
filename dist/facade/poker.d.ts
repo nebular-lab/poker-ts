@@ -1,3 +1,4 @@
+import { ActionRecord } from '../lib/dealer';
 import ChipRange from '../lib/chip-range';
 import { SeatIndex } from 'types/seat-index';
 import { HandRanking } from '../lib/hand';
@@ -67,4 +68,6 @@ export default class Poker {
     setAutomaticAction(seatIndex: number, action: AutomaticAction | null): void;
     sitDown(seatIndex: number, buyIn: number): void;
     standUp(seatIndex: number): void;
+    getActionHistory(): ActionRecord[];
+    getCurrentSequence(): number;
 }
