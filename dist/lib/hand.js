@@ -23,12 +23,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HandRanking = void 0;
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("../util/assert");
 var card_1 = __importStar(require("./card"));
 var array_1 = require("../util/array");
 var HandRanking;
@@ -46,18 +43,18 @@ var HandRanking;
 })(HandRanking = exports.HandRanking || (exports.HandRanking = {}));
 var Hand = /** @class */ (function () {
     function Hand(ranking, strength, cards) {
-        assert_1.default(cards.length === 5);
+        assert_1.pokerAssert(cards.length === 5, "Cards array must have exactly 5 cards");
         this._cards = cards;
         this._ranking = ranking;
         this._strength = strength;
     }
     Hand.create = function (holeCards, communityCards) {
-        assert_1.default(communityCards.cards().length === 5, 'All community cards must be dealt');
+        assert_1.pokerAssert(communityCards.cards().length === 5, 'All community cards must be dealt');
         var cards = __spreadArray(__spreadArray([], holeCards), communityCards.cards());
         return Hand.of(cards);
     };
     Hand.of = function (cards) {
-        assert_1.default(cards.length === 7);
+        assert_1.pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards");
         var hand1 = Hand._highLowHandEval(cards);
         var hand2 = Hand._straightFlushEval(cards);
         if (hand2 !== null) {
@@ -73,7 +70,7 @@ var Hand = /** @class */ (function () {
         return h2.strength() - h1.strength();
     };
     Hand.nextRank = function (cards) {
-        assert_1.default(cards.length !== 0);
+        assert_1.pokerAssert(cards.length !== 0, "Cards array cannot be empty");
         var firstRank = cards[0].rank;
         var secondRankIndex = cards.findIndex(function (card) { return card.rank !== firstRank; });
         return {
@@ -82,7 +79,7 @@ var Hand = /** @class */ (function () {
         };
     };
     Hand.getStrength = function (cards) {
-        assert_1.default(cards.length === 5);
+        assert_1.pokerAssert(cards.length === 5, "Cards array must have exactly 5 cards for strength calculation");
         var sum = 0;
         var multiplier = Math.pow(13, 4);
         for (;;) {
@@ -101,7 +98,7 @@ var Hand = /** @class */ (function () {
     // If there are >=5 cards with the same suit, return a span containing all of
     // them.
     Hand.getSuitedCards = function (cards) {
-        assert_1.default(cards.length === 7);
+        assert_1.pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards for suited cards check");
         cards.sort(card_1.default.compare);
         var first = 0;
         for (;;) {
@@ -125,7 +122,7 @@ var Hand = /** @class */ (function () {
     // Returns the subrange which contains the cards forming a straight. Ranks of
     // cards in the resulting range are r, r-1, r-2... except for the wheel.
     Hand.getStraightCards = function (cards) {
-        assert_1.default(cards.length >= 5);
+        assert_1.pokerAssert(cards.length >= 5, "Cards array must have at least 5 cards for straight check");
         var first = 0;
         for (;;) {
             var last = array_1.findIndexAdjacent(cards.slice(first), function (c1, c2) { return c1.rank !== c2.rank + 1; });
@@ -151,7 +148,7 @@ var Hand = /** @class */ (function () {
         }
     };
     Hand._highLowHandEval = function (cards /* size = 7 */) {
-        assert_1.default(cards.length === 7);
+        assert_1.pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards for high-low hand evaluation");
         cards = __spreadArray([], cards);
         var rankOccurrences = new Array(13).fill(0);
         for (var _i = 0, cards_1 = cards; _i < cards_1.length; _i++) {
@@ -196,7 +193,7 @@ var Hand = /** @class */ (function () {
         return new Hand(ranking, strength, handCards);
     };
     Hand._straightFlushEval = function (cards) {
-        assert_1.default(cards.length === 7);
+        assert_1.pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards for straight flush evaluation");
         cards = __spreadArray([], cards);
         var suitedCards = Hand.getSuitedCards(cards);
         if (suitedCards !== null) {

@@ -1,4 +1,4 @@
-import assert from 'assert'
+import { pokerAssert } from '../util/assert'
 import Card, { CardRank, CardSuit } from './card'
 import { shuffle } from '../util/array'
 
@@ -31,7 +31,7 @@ export default class Deck extends Array<Card> {
     }
 
     draw(): Card {
-        assert(this._size > 0, 'Cannot draw from an empty deck')
+        pokerAssert(this._size > 0, 'Cannot draw from an empty deck')
         return this[--this._size]
     }
 }

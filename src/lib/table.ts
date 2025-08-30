@@ -4,7 +4,7 @@ import { ForcedBets } from 'types/forced-bets'
 import Deck from './deck'
 import CommunityCards, { RoundOfBetting } from './community-cards'
 import Dealer, { Action, ActionRange, ActionRecord } from './dealer'
-import assert from 'assert'
+import { pokerAssert } from '../util/assert';
 import Pot from './pot'
 import { HoleCards } from 'types/hole-cards'
 import { Chips } from 'types/chips'
@@ -36,7 +36,7 @@ export default class Table {
     private _staged: boolean[] // All players who took a seat or stood up before the .start_hand()
 
     constructor(forcedBets: ForcedBets, numSeats = 9) {
-        assert(numSeats <= 23, 'Maximum 23 players')
+        pokerAssert(numSeats <= 23, 'Maximum 23 players')
 
         this._numSeats = numSeats
         this._forcedBets = forcedBets
@@ -46,15 +46,15 @@ export default class Table {
     }
 
     playerToAct(): SeatIndex {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.playerToAct()
     }
 
     button(): SeatIndex {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.button()
     }
@@ -64,22 +64,22 @@ export default class Table {
     }
 
     handPlayers(): SeatArray {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.players()
     }
 
     numActivePlayers(): number {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.numActivePlayers()
     }
 
     pots(): Pot[] {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.pots()
     }
@@ -89,7 +89,7 @@ export default class Table {
     }
 
     setForcedBets(forcedBets: ForcedBets): void {
-        assert(!this.handInProgress(), 'Hand must not be in progress')
+        pokerAssert(!this.handInProgress(), 'Hand must not be in progress')
 
         this._forcedBets = forcedBets
     }
@@ -99,8 +99,8 @@ export default class Table {
     }
 
     startHand(seat?: number): void {
-        assert(!this.handInProgress(), 'Hand must not be in progress')
-        assert(
+        pokerAssert(!this.handInProgress(), 'Hand must not be in progress')
+        pokerAssert(
             this._tablePlayers.filter(player => player !== null).length >= 2,
             'There must be at least 2 players at the table',
         )
@@ -126,51 +126,51 @@ export default class Table {
     }
 
     bettingRoundInProgress(): boolean {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.bettingRoundInProgress()
     }
 
     bettingRoundsCompleted(): boolean {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.bettingRoundsCompleted()
     }
 
     roundOfBetting(): RoundOfBetting {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.roundOfBetting()
     }
 
     communityCards(): CommunityCards {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._communityCards !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._communityCards !== undefined, "Community cards must be defined")
 
         return this._communityCards
     }
 
     legalActions(): ActionRange {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.legalActions()
     }
 
     holeCards(): (HoleCards | null)[] {
-        assert(this.handInProgress() || this.bettingRoundsCompleted(), 'Hand must be in progress or showdown must have ended')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.handInProgress() || this.bettingRoundsCompleted(), 'Hand must be in progress or showdown must have ended')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         return this._dealer.holeCards()
     }
 
     actionTaken(action: Action, bet?: Chips): void {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this._dealer !== undefined)
-        assert(this._automaticActions !== undefined)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
+        pokerAssert(this._automaticActions !== undefined, "Automatic actions must be defined")
 
         this._dealer.actionTaken(action, bet)
         while (this._dealer.bettingRoundInProgress()) {
@@ -195,9 +195,9 @@ export default class Table {
     }
 
     endBettingRound() {
-        assert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
-        assert(!this.bettingRoundsCompleted(), 'Betting rounds must not be completed')
-        assert(this._dealer !== undefined)
+        pokerAssert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
+        pokerAssert(!this.bettingRoundsCompleted(), 'Betting rounds must not be completed')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         this._dealer.endBettingRound()
         this.amendAutomaticActions()
@@ -206,9 +206,9 @@ export default class Table {
     }
 
     showdown(): void {
-        assert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
-        assert(this.bettingRoundsCompleted(), 'Betting rounds must be completed')
-        assert(this._dealer !== undefined)
+        pokerAssert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
+        pokerAssert(this.bettingRoundsCompleted(), 'Betting rounds must be completed')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         this._dealer.showdown()
         this.updateTablePlayers()
@@ -216,21 +216,21 @@ export default class Table {
     }
 
     winners(): [SeatIndex, Hand, HoleCards][][] {
-        assert(!this.handInProgress(), 'Hand must not be in progress')
+        pokerAssert(!this.handInProgress(), 'Hand must not be in progress')
 
         return this._dealer?.winners() ?? []
     }
 
     automaticActions(): (AutomaticAction | null)[] {
-        assert(this.handInProgress(), 'Hand must be in progress')
-        assert(this._automaticActions !== undefined)
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this._automaticActions !== undefined, "Automatic actions must be defined")
 
         return this._automaticActions
     }
 
     canSetAutomaticAction(seat: SeatIndex): boolean {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this._staged !== undefined)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this._staged !== undefined, "Staged array must be defined")
 
         // (1) This is only ever true for players that have been in the hand since the start.
         // Every following sit-down is accompanied by a _staged[s] = true
@@ -239,8 +239,8 @@ export default class Table {
     }
 
     legalAutomaticActions(seat: SeatIndex): AutomaticAction {
-        assert(this.canSetAutomaticAction(seat), 'Player must be allowed to set automatic actions')
-        assert(this._dealer !== undefined)
+        pokerAssert(this.canSetAutomaticAction(seat), 'Player must be allowed to set automatic actions')
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
         // fold, all_in -- always viable
         // check, check_fold -- viable when biggest_bet - bet_size == 0
         // call -- when biggest_bet - bet_size > 0 ("else" of the previous case)
@@ -252,7 +252,7 @@ export default class Table {
         // call_any -> check
         const biggestBet = this._dealer.biggestBet()
         const player = this._tablePlayers[seat]
-        assert(player !== null)
+        pokerAssert(player !== null, "Player must not be null")
         const betSize = player.betSize()
         const totalChips = player.totalChips()
         let legalActions = AutomaticAction.FOLD | AutomaticAction.ALL_IN
@@ -271,30 +271,30 @@ export default class Table {
     }
 
     setAutomaticAction(seat: SeatIndex, action: AutomaticAction | null) {
-        assert(this.canSetAutomaticAction(seat), 'Player must be allowed to set automatic actions')
-        assert(seat !== this.playerToAct(), 'Player must not be the player to act')
-        assert(action === null || bitCount(action) === 1, 'Player must pick one automatic action or null')
-        assert(action === null || action & this.legalAutomaticActions(seat), 'Given automatic action must be legal')
-        assert(this._automaticActions !== undefined)
+        pokerAssert(this.canSetAutomaticAction(seat), 'Player must be allowed to set automatic actions')
+        pokerAssert(seat !== this.playerToAct(), 'Player must not be the player to act')
+        pokerAssert(action === null || bitCount(action) === 1, 'Player must pick one automatic action or null')
+        pokerAssert(action === null || action & this.legalAutomaticActions(seat), 'Given automatic action must be legal')
+        pokerAssert(this._automaticActions !== undefined, "Automatic actions must be defined")
 
         this._automaticActions[seat] = action
     }
 
     sitDown(seat: SeatIndex, buyIn: Chips): void {
-        assert(seat < this._numSeats && seat >= 0, 'Given seat index must be valid')
-        assert(this._tablePlayers[seat] === null, 'Given seat must not be occupied')
+        pokerAssert(seat < this._numSeats && seat >= 0, 'Given seat index must be valid')
+        pokerAssert(this._tablePlayers[seat] === null, 'Given seat must not be occupied')
 
         this._tablePlayers[seat] = new Player(buyIn)
         this._staged[seat] = true
     }
 
     standUp(seat: SeatIndex): void {
-        assert(seat < this._numSeats && seat >= 0, 'Given seat index must be valid')
-        assert(this._tablePlayers[seat] !== null, 'Given seat must be occupied')
+        pokerAssert(seat < this._numSeats && seat >= 0, 'Given seat index must be valid')
+        pokerAssert(this._tablePlayers[seat] !== null, 'Given seat must be occupied')
 
         if (this.handInProgress()) {
-            assert(this.bettingRoundInProgress())
-            assert(this._handPlayers !== undefined)
+            pokerAssert(this.bettingRoundInProgress(), "Betting round must be in progress for stand up")
+            pokerAssert(this._handPlayers !== undefined, "Hand players must be defined for stand up")
             if (seat === this.playerToAct()) {
                 this.actionTaken(Action.FOLD)
                 this._tablePlayers[seat] = null
@@ -315,10 +315,10 @@ export default class Table {
     }
 
     private takeAutomaticAction(automaticAction: AutomaticAction): void {
-        assert(this._dealer !== undefined)
-        assert(this._handPlayers !== undefined)
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
+        pokerAssert(this._handPlayers !== undefined, "Hand players must be defined")
         const player = this._handPlayers[this._dealer.playerToAct()]
-        assert(player !== null)
+        pokerAssert(player !== null, "Player must not be null")
         const biggestBet = this._dealer.biggestBet()
         const betGap = biggestBet - player.betSize()
         const totalChips = player.totalChips()
@@ -339,7 +339,7 @@ export default class Table {
                 }
                 return this._dealer.actionTaken(Action.RAISE, totalChips)
             default:
-                assert(false)
+                pokerAssert(false, "Invalid automatic action")
         }
     }
 
@@ -349,16 +349,16 @@ export default class Table {
     // call_any -- you can lose your ability to call_any, which only leaves the normal call (doubt cleared)
     //          condition: biggest_bet >= total_chips
     private amendAutomaticActions(): void {
-        assert(this._dealer !== undefined)
-        assert(this._automaticActions !== undefined)
-        assert(this._handPlayers !== undefined)
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
+        pokerAssert(this._automaticActions !== undefined, "Automatic actions must be defined")
+        pokerAssert(this._handPlayers !== undefined, "Hand players must be defined")
 
         const biggestBet = this._dealer.biggestBet()
         for (let s = 0; s < this._numSeats; s++) {
             const automaticAction = this._automaticActions[s]
             if (automaticAction !== null) {
                 const player = this._handPlayers[s]
-                assert(player !== null)
+                pokerAssert(player !== null, "Player must not be null")
                 const isContested = this._dealer.isContested()
                 const betGap = biggestBet - player.betSize()
                 const totalChips = player.totalChips()
@@ -379,18 +379,18 @@ export default class Table {
     // - check if possible or;
     // - call if possible.
     private actPassively(): void {
-        assert(this._dealer !== undefined)
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
         const legalActions = this._dealer.legalActions()
         if (legalActions.action & Action.BET) {
             this.actionTaken(Action.CHECK)
         } else {
-            assert(legalActions.action & Action.CALL)
+            pokerAssert(legalActions.action & Action.CALL, "Call action must be legal")
             this.actionTaken(Action.CALL)
         }
     }
 
     private incrementButton(): void {
-        assert(this._handPlayers !== undefined)
+        pokerAssert(this._handPlayers !== undefined, "Hand players must be defined")
 
         if (this._buttonSetManually) {
             this._buttonSetManually = false
@@ -398,10 +398,10 @@ export default class Table {
             this._button = this._handPlayers[this._button]
                 ? this._button
                 : this._handPlayers.findIndex(player => player !== null)
-            assert(this._button !== -1)
+            pokerAssert(this._button !== -1, "Button position must be valid")
         } else if (this._firstTimeButton) {
             const seat = this._handPlayers.findIndex(player => player !== null)
-            assert(seat !== -1)
+            pokerAssert(seat !== -1, "Seat index must be valid")
             this._button = seat
             this._firstTimeButton = false
         } else {
@@ -414,24 +414,24 @@ export default class Table {
     }
 
     private clearFoldedBets(): void {
-        assert(this._handPlayers !== undefined)
+        pokerAssert(this._handPlayers !== undefined, "Hand players must be defined")
         for (let s = 0; s < this._numSeats; s++) {
             const handPlayer = this._handPlayers[s]
             const tablePlayer = this._tablePlayers[s]
             if (!this._staged[s] && handPlayer === null && tablePlayer !== null && tablePlayer.betSize() > 0) {
                 // Has folded bet
-                assert(this._tablePlayers[s] !== null)
+                pokerAssert(this._tablePlayers[s] !== null, "Table player must not be null")
                 this._tablePlayers[s] = new Player(tablePlayer.stack())
             }
         }
     }
 
     private updateTablePlayers(): void {
-        assert(this._handPlayers !== undefined)
+        pokerAssert(this._handPlayers !== undefined, "Hand players must be defined")
         for (let s = 0; s < this._numSeats; s++) {
             const handPlayer = this._handPlayers[s]
             if (!this._staged[s] && handPlayer !== null) {
-                assert(this._tablePlayers[s] !== null)
+                pokerAssert(this._tablePlayers[s] !== null, "Table player must not be null")
                 this._tablePlayers[s] = new Player(handPlayer)
             }
         }
@@ -440,8 +440,8 @@ export default class Table {
     // A player is considered active (in class table context) if
     // he started in the current betting round, has not stood up or folded.
     private singleActivePlayerRemaining(): boolean {
-        assert(this.bettingRoundInProgress())
-        assert(this._dealer !== undefined)
+        pokerAssert(this.bettingRoundInProgress(), "Betting round must be in progress")
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
 
         // What dealer::betting_round_players filter returns is all the players
         // who started the current betting round and have not folded. Players who
@@ -455,7 +455,7 @@ export default class Table {
     }
 
     private standUpBustedPlayers(): void {
-        assert(!this.handInProgress())
+        pokerAssert(!this.handInProgress(), "Hand must not be in progress")
         for (let s = 0; s < this._numSeats; s++) {
             const player = this._tablePlayers[s]
             if (player !== null && player.totalChips() === 0) {
@@ -465,12 +465,12 @@ export default class Table {
     }
 
     getActionHistory(): ActionRecord[] {
-        assert(this._dealer !== undefined)
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
         return this._dealer.getActionHistory()
     }
 
     getCurrentSequence(): number {
-        assert(this._dealer !== undefined)
+        pokerAssert(this._dealer !== undefined, "Dealer must be defined")
         return this._dealer.getCurrentSequence()
     }
 }

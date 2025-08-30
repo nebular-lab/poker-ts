@@ -1,11 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findMax = exports.unique = exports.rotate = exports.nextOrWrap = exports.findIndexAdjacent = exports.shuffle = void 0;
 var crypto_1 = require("crypto");
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("./assert");
 function shuffle(array) {
     var _a;
     for (var index = array.length - 1; index > 0; index--) {
@@ -55,7 +52,7 @@ function unique(array, predicate) {
 }
 exports.unique = unique;
 function findMax(array, compare) {
-    assert_1.default(array.length > 0);
+    assert_1.pokerAssert(array.length > 0, "Array cannot be empty for findMax operation");
     return array.sort(compare)[0];
 }
 exports.findMax = findMax;

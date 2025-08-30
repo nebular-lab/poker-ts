@@ -1,10 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Action = void 0;
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("../util/assert");
 var Action;
 (function (Action) {
     Action[Action["LEAVE"] = 1] = "LEAVE";
@@ -20,7 +17,7 @@ var Round = /** @class */ (function () {
         this._playerToAct = firstToAct;
         this._lastAggressiveActor = firstToAct;
         this._numActivePlayers = activePlayers.filter(function (player) { return !!player; }).length;
-        assert_1.default(firstToAct < activePlayers.length);
+        assert_1.pokerAssert(firstToAct < activePlayers.length, 'First player to act index must be within active players array bounds');
     }
     Round.prototype.activePlayers = function () {
         return this._activePlayers;
@@ -41,8 +38,8 @@ var Round = /** @class */ (function () {
         return this._contested;
     };
     Round.prototype.actionTaken = function (action) {
-        assert_1.default(this.inProgress());
-        assert_1.default(!(action & Action.PASSIVE && action & Action.AGGRESSIVE));
+        assert_1.pokerAssert(this.inProgress(), 'Cannot take action when round is not in progress');
+        assert_1.pokerAssert(!(action & Action.PASSIVE && action & Action.AGGRESSIVE), 'Action cannot be both passive and aggressive');
         if (this._firstAction) {
             this._firstAction = false;
         }

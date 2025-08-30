@@ -1,9 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("../util/assert");
 var Pot = /** @class */ (function () {
     function Pot() {
         this._eligiblePlayers = [];
@@ -16,7 +13,7 @@ var Pot = /** @class */ (function () {
         return this._eligiblePlayers;
     };
     Pot.prototype.add = function (amount) {
-        assert_1.default(amount >= 0, 'Cannot add a negative amount to the pot');
+        assert_1.pokerAssert(amount >= 0, 'Cannot add a negative amount to the pot');
         this._size += amount;
     };
     Pot.prototype.collectBetsFrom = function (players) {
@@ -37,7 +34,7 @@ var Pot = /** @class */ (function () {
         else {
             // Find the smallest player bet on the table.
             var firstBetter = players[firstBetterIndex];
-            assert_1.default(firstBetter !== null);
+            assert_1.pokerAssert(firstBetter !== null, 'First better player must exist');
             var minBet_1 = players.slice(firstBetterIndex + 1).reduce(function (acc, player) {
                 if (player !== null && player.betSize() !== 0 && player.betSize() < acc)
                     acc = player.betSize();

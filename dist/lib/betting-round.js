@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActionRange = exports.Action = void 0;
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("../util/assert");
 var chip_range_1 = __importDefault(require("./chip-range"));
 var round_1 = __importStar(require("./round"));
 var Action;
@@ -48,8 +48,8 @@ var BettingRound = /** @class */ (function () {
         this._players = players;
         this._biggestBet = biggestBet;
         this._minRaise = minRaise;
-        assert_1.default(firstToAct < players.length, 'Seat index must be in the valid range');
-        assert_1.default(players[firstToAct], 'First player to act must exist');
+        assert_1.pokerAssert(firstToAct < players.length, 'Seat index must be in the valid range');
+        assert_1.pokerAssert(players[firstToAct], 'First player to act must exist');
     }
     BettingRound.prototype.inProgress = function () {
         return this._round.inProgress();
@@ -80,7 +80,7 @@ var BettingRound = /** @class */ (function () {
     };
     BettingRound.prototype.legalActions = function () {
         var player = this._players[this._round.playerToAct()];
-        assert_1.default(player !== null);
+        assert_1.pokerAssert(player !== null, 'Player to act must exist');
         var playerChips = player.totalChips();
         var canRaise = playerChips > this._biggestBet;
         if (canRaise) {
@@ -95,9 +95,9 @@ var BettingRound = /** @class */ (function () {
     BettingRound.prototype.actionTaken = function (action, bet) {
         if (bet === void 0) { bet = 0; }
         var player = this._players[this._round.playerToAct()];
-        assert_1.default(player !== null);
+        assert_1.pokerAssert(player !== null, 'Player taking action must exist');
         if (action === Action.RAISE) {
-            assert_1.default(this.isRaiseValid(bet));
+            assert_1.pokerAssert(this.isRaiseValid(bet), 'Raise amount must be valid');
             player.bet(bet);
             this._minRaise = bet - this._biggestBet;
             this._biggestBet = bet;
@@ -116,13 +116,13 @@ var BettingRound = /** @class */ (function () {
             this._round.actionTaken(actionFlag);
         }
         else {
-            assert_1.default(action === Action.LEAVE);
+            assert_1.pokerAssert(action === Action.LEAVE, 'Action must be LEAVE when not RAISE or MATCH');
             this._round.actionTaken(round_1.Action.LEAVE);
         }
     };
     BettingRound.prototype.isRaiseValid = function (bet) {
         var player = this._players[this._round.playerToAct()];
-        assert_1.default(player !== null);
+        assert_1.pokerAssert(player !== null, 'Player must exist to validate raise');
         var playerChips = player.stack() + player.betSize();
         var minBet = this._biggestBet + this._minRaise;
         if (playerChips > this._biggestBet && playerChips < minBet) {

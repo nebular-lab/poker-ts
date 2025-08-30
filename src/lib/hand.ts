@@ -1,4 +1,4 @@
-import assert from 'assert'
+import { pokerAssert } from '../util/assert'
 import Card, { CardRank } from './card'
 import { findIndexAdjacent, findMax, rotate, unique } from '../util/array'
 import CommunityCards from './community-cards'
@@ -28,7 +28,7 @@ export default class Hand {
     private readonly _cards: Card[] /* size 5 */
 
     constructor(ranking: HandRanking, strength: number, cards: Card[]) {
-        assert(cards.length === 5)
+        pokerAssert(cards.length === 5, "Cards array must have exactly 5 cards")
 
         this._cards = cards
         this._ranking = ranking
@@ -36,7 +36,7 @@ export default class Hand {
     }
 
     static create(holeCards: HoleCards, communityCards: CommunityCards): Hand {
-        assert(communityCards.cards().length === 5, 'All community cards must be dealt')
+        pokerAssert(communityCards.cards().length === 5, 'All community cards must be dealt')
         const cards = [
             ...holeCards,
             ...communityCards.cards(),
@@ -45,7 +45,7 @@ export default class Hand {
     }
 
     static of(cards: Card[]): Hand {
-        assert(cards.length === 7)
+        pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards")
         const hand1 = Hand._highLowHandEval(cards)
         const hand2 = Hand._straightFlushEval(cards)
 
@@ -65,7 +65,7 @@ export default class Hand {
     }
 
     static nextRank(cards: Card[]): RankInfo {
-        assert(cards.length !== 0)
+        pokerAssert(cards.length !== 0, "Cards array cannot be empty")
         const firstRank = cards[0].rank
         const secondRankIndex = cards.findIndex(card => card.rank !== firstRank)
         return {
@@ -75,7 +75,7 @@ export default class Hand {
     }
 
     static getStrength(cards: Card[]): number {
-        assert(cards.length === 5)
+        pokerAssert(cards.length === 5, "Cards array must have exactly 5 cards for strength calculation")
         let sum = 0
         let multiplier = Math.pow(13, 4)
         for (; ;) {
@@ -95,7 +95,7 @@ export default class Hand {
     // If there are >=5 cards with the same suit, return a span containing all of
     // them.
     static getSuitedCards(cards: Card[]): Card[] | null {
-        assert(cards.length === 7)
+        pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards for suited cards check")
         cards.sort(Card.compare)
         let first = 0
         for (; ;) {
@@ -119,7 +119,7 @@ export default class Hand {
     // Returns the subrange which contains the cards forming a straight. Ranks of
     // cards in the resulting range are r, r-1, r-2... except for the wheel.
     static getStraightCards(cards: Card[]): Card[] | null {
-        assert(cards.length >= 5)
+        pokerAssert(cards.length >= 5, "Cards array must have at least 5 cards for straight check")
         let first = 0
 
         for (; ;) {
@@ -145,7 +145,7 @@ export default class Hand {
     }
 
     static _highLowHandEval(cards: Card[] /* size = 7 */): Hand {
-        assert(cards.length === 7)
+        pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards for high-low hand evaluation")
 
         cards = [...cards]
 
@@ -193,7 +193,7 @@ export default class Hand {
     }
 
     static _straightFlushEval(cards: Card[]): Hand | null {
-        assert(cards.length === 7)
+        pokerAssert(cards.length === 7, "Cards array must have exactly 7 cards for straight flush evaluation")
 
         cards = [...cards]
         const suitedCards = Hand.getSuitedCards(cards)

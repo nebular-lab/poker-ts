@@ -33,11 +33,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("../util/assert");
 var card_1 = __importStar(require("./card"));
 var array_1 = require("../util/array");
 var Deck = /** @class */ (function (_super) {
@@ -64,7 +61,7 @@ var Deck = /** @class */ (function (_super) {
         this.shuffle();
     };
     Deck.prototype.draw = function () {
-        assert_1.default(this._size > 0, 'Cannot draw from an empty deck');
+        assert_1.pokerAssert(this._size > 0, 'Cannot draw from an empty deck');
         return this[--this._size];
     };
     return Deck;

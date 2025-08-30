@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { pokerAssert } from '../util/assert';
 import Card from "./card";
 
 export enum RoundOfBetting {
@@ -24,7 +24,7 @@ export default class CommunityCards {
     }
 
     deal(cards: Card[]): void {
-        assert(cards.length <= 5 - this._cards.length, 'Cannot deal more than there is undealt cards')
+        pokerAssert(cards.length <= 5 - this._cards.length, 'Cannot deal more than there are undealt cards')
         this._cards = this._cards.concat(cards)
     }
 }

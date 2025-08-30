@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { pokerAssert } from '../util/assert';
 import { Chips } from 'types/chips';
 import { isChips } from '../type-guards/chips'
 
@@ -38,14 +38,14 @@ export default class Player {
     }
 
     bet(amount: Chips): void {
-        assert(amount <= this._total, 'Player cannot bet more than he/she has')
-        assert(amount >= this._betSize, 'Player must bet more than he/she has previously')
+        pokerAssert(amount <= this._total, 'Player cannot bet more than he/she has')
+        pokerAssert(amount >= this._betSize, 'Player must bet more than he/she has previously')
 
         this._betSize = amount
     }
 
     takeFromBet(amount: Chips): void {
-        assert(amount <= this._betSize, 'Cannot take from bet more than is there')
+        pokerAssert(amount <= this._betSize, 'Cannot take from bet more than is there')
         this._total -= amount
         this._betSize -= amount
     }

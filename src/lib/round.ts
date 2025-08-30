@@ -1,4 +1,4 @@
-import assert from 'assert';
+import { pokerAssert } from '../util/assert';
 import { SeatIndex } from 'types/seat-index';
 
 export enum Action {
@@ -21,7 +21,7 @@ export default class Round {
         this._lastAggressiveActor = firstToAct;
         this._numActivePlayers = activePlayers.filter(player => !!player).length;
 
-        assert(firstToAct < activePlayers.length)
+        pokerAssert(firstToAct < activePlayers.length, 'First player to act index must be within active players array bounds')
     }
 
     activePlayers(): boolean[] {
@@ -49,8 +49,8 @@ export default class Round {
     }
 
     actionTaken(action: Action): void {
-        assert(this.inProgress())
-        assert(!(action & Action.PASSIVE && action & Action.AGGRESSIVE))
+        pokerAssert(this.inProgress(), 'Cannot take action when round is not in progress')
+        pokerAssert(!(action & Action.PASSIVE && action & Action.AGGRESSIVE), 'Action cannot be both passive and aggressive')
 
         if (this._firstAction) {
             this._firstAction = false;

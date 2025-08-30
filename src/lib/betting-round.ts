@@ -1,4 +1,4 @@
-import assert from 'assert'
+import { pokerAssert } from '../util/assert'
 import ChipRange from './chip-range'
 import { SeatIndex } from 'types/seat-index'
 import { Chips } from 'types/chips'
@@ -33,8 +33,8 @@ export default class BettingRound {
         this._biggestBet = biggestBet
         this._minRaise = minRaise
 
-        assert(firstToAct < players.length, 'Seat index must be in the valid range')
-        assert(players[firstToAct], 'First player to act must exist')
+        pokerAssert(firstToAct < players.length, 'Seat index must be in the valid range')
+        pokerAssert(players[firstToAct], 'First player to act must exist')
     }
 
     inProgress(): boolean {
@@ -73,7 +73,7 @@ export default class BettingRound {
 
     legalActions(): ActionRange {
         const player = this._players[this._round.playerToAct()]
-        assert(player !== null)
+        pokerAssert(player !== null, 'Player to act must exist')
         const playerChips = player.totalChips()
         const canRaise = playerChips > this._biggestBet
         if (canRaise) {
@@ -87,9 +87,9 @@ export default class BettingRound {
 
     actionTaken(action: Action, bet: Chips = 0) {
         const player = this._players[this._round.playerToAct()]
-        assert(player !== null)
+        pokerAssert(player !== null, 'Player taking action must exist')
         if (action === Action.RAISE) {
-            assert(this.isRaiseValid(bet))
+            pokerAssert(this.isRaiseValid(bet), 'Raise amount must be valid')
             player.bet(bet)
             this._minRaise = bet - this._biggestBet
             this._biggestBet = bet
@@ -106,14 +106,14 @@ export default class BettingRound {
             }
             this._round.actionTaken(actionFlag)
         } else {
-            assert(action === Action.LEAVE)
+            pokerAssert(action === Action.LEAVE, 'Action must be LEAVE when not RAISE or MATCH')
             this._round.actionTaken(RoundAction.LEAVE)
         }
     }
 
     private isRaiseValid(bet: Chips): boolean {
         const player = this._players[this._round.playerToAct()]
-        assert(player !== null)
+        pokerAssert(player !== null, 'Player must exist to validate raise')
         const playerChips = player.stack() + player.betSize()
         const minBet = this._biggestBet + this._minRaise
         if (playerChips > this._biggestBet && playerChips < minBet) {

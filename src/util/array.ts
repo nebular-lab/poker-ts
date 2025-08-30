@@ -1,5 +1,5 @@
 import { randomInt } from 'crypto'
-import assert from 'assert'
+import { pokerAssert } from './assert'
 
 export function shuffle<Type>(array: Type[]) {
     for (let index = array.length - 1; index > 0; index--) {
@@ -48,6 +48,6 @@ export function unique<Type>(array:Type[],  predicate:(first: Type, second: Type
 }
 
 export function findMax<Type>(array:Type[], compare:(first: Type, second: Type) => number): Type {
-    assert(array.length > 0)
+    pokerAssert(array.length > 0, "Array cannot be empty for findMax operation")
     return array.sort(compare)[0]
 }

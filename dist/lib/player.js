@@ -1,9 +1,6 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var assert_1 = __importDefault(require("assert"));
+var assert_1 = require("../util/assert");
 var chips_1 = require("../type-guards/chips");
 var Player = /** @class */ (function () {
     function Player(arg) {
@@ -36,12 +33,12 @@ var Player = /** @class */ (function () {
         this._total -= amount;
     };
     Player.prototype.bet = function (amount) {
-        assert_1.default(amount <= this._total, 'Player cannot bet more than he/she has');
-        assert_1.default(amount >= this._betSize, 'Player must bet more than he/she has previously');
+        assert_1.pokerAssert(amount <= this._total, 'Player cannot bet more than he/she has');
+        assert_1.pokerAssert(amount >= this._betSize, 'Player must bet more than he/she has previously');
         this._betSize = amount;
     };
     Player.prototype.takeFromBet = function (amount) {
-        assert_1.default(amount <= this._betSize, 'Cannot take from bet more than is there');
+        assert_1.pokerAssert(amount <= this._betSize, 'Cannot take from bet more than is there');
         this._total -= amount;
         this._betSize -= amount;
     };

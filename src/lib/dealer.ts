@@ -8,7 +8,7 @@ import CommunityCards, { next, RoundOfBetting } from './community-cards'
 import BettingRound, { Action as BettingRoundAction } from './betting-round'
 import { HoleCards } from 'types/hole-cards'
 import PotManager from './pot-manager'
-import assert from 'assert'
+import { pokerAssert } from '../util/assert'
 import Pot from './pot'
 import Hand from './hand'
 import { findIndexAdjacent, nextOrWrap } from '../util/array'
@@ -36,7 +36,7 @@ export class ActionRange {
     }
 
     contains(action: Action, bet: Chips = 0): boolean {
-        assert(Dealer.isValid(action), 'The action representation must be valid')
+        pokerAssert(Dealer.isValid(action), 'The action representation must be valid')
         return action && Dealer.isAggressive(action)
             ? this.chipRange?.contains(bet) ?? false
             : true
@@ -77,8 +77,8 @@ export default class Dealer {
         this._holeCards = new Array(numSeats).fill(null)
         this._winners = []
 
-        assert(deck.length === 52, 'Deck must be whole')
-        assert(communityCards.cards().length === 0, 'No community cards should have been dealt')
+        pokerAssert(deck.length === 52, 'Deck must be whole')
+        pokerAssert(communityCards.cards().length === 0, 'No community cards should have been dealt')
     }
 
     static isValid(action: Action): boolean {
@@ -98,13 +98,13 @@ export default class Dealer {
     }
 
     bettingRoundsCompleted(): boolean {
-        assert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
         return this._bettingRoundsCompleted
     }
 
     playerToAct(): SeatIndex {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this._bettingRound !== null)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this._bettingRound !== null, "Betting round must not be null")
         return this._bettingRound.playerToAct()
     }
 
@@ -118,7 +118,7 @@ export default class Dealer {
     }
 
     roundOfBetting(): RoundOfBetting {
-        assert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
         return this._roundOfBetting
     }
 
@@ -139,15 +139,15 @@ export default class Dealer {
     }
 
     legalActions(): ActionRange {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this._bettingRound !== null)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this._bettingRound !== null, "Betting round must not be null")
         const player = this._players[this._bettingRound.playerToAct()]
         const actions = this._bettingRound.legalActions()
         const actionRange = new ActionRange(actions.chipRange)
 
         // Below we take care of differentiating between check/call and bet/raise,
         // which the betting_round treats as just "match" and "raise".
-        assert(player !== null)
+        pokerAssert(player !== null, "Player must not be null")
         if (this._bettingRound.biggestBet() - player.betSize() === 0) {
             actionRange.action |= Action.CHECK
             // Typically you can always bet or raise if you can check. Exception is if you are the big blind and have no
@@ -174,7 +174,7 @@ export default class Dealer {
     }
 
     pots(): Pot[] {
-        assert(this.handInProgress(), 'Hand must be in progress')
+        pokerAssert(this.handInProgress(), 'Hand must be in progress')
         return this._potManager.pots()
     }
 
@@ -183,12 +183,12 @@ export default class Dealer {
     }
 
     holeCards(): HoleCards[] {
-        assert(this.handInProgress() || this.bettingRoundInProgress(), 'Hand must be in progress or showdown must have ended')
+        pokerAssert(this.handInProgress() || this.bettingRoundInProgress(), 'Hand must be in progress or showdown must have ended')
         return this._holeCards
     }
 
     startHand(): void {
-        assert(!this.handInProgress(), 'Hand must not be in progress')
+        pokerAssert(!this.handInProgress(), 'Hand must not be in progress')
         this._bettingRoundsCompleted = false
         this._roundOfBetting = RoundOfBetting.PREFLOP
         this._winners = []
@@ -205,9 +205,9 @@ export default class Dealer {
     }
 
     actionTaken(action: Action, bet?: Chips): void {
-        assert(this.bettingRoundInProgress(), 'Betting round must be in progress')
-        assert(this.legalActions().contains(action, bet), 'Action must be legal')
-        assert(this._bettingRound !== null)
+        pokerAssert(this.bettingRoundInProgress(), 'Betting round must be in progress')
+        pokerAssert(this.legalActions().contains(action, bet), 'Action must be legal')
+        pokerAssert(this._bettingRound !== null, "Betting round must not be null")
 
         const seatIndex = this.playerToAct()
         const street = this.getStreetName()
@@ -251,9 +251,9 @@ export default class Dealer {
         } else if (action & Action.BET || action & Action.RAISE) {
             this._bettingRound.actionTaken(BettingRoundAction.RAISE, bet)
         } else {
-            assert(action & Action.FOLD)
+            pokerAssert(action & Action.FOLD, "Action must include fold")
             const foldingPlayer = this._players[this.playerToAct()]
-            assert(foldingPlayer !== null)
+            pokerAssert(foldingPlayer !== null, "Folding player must not be null")
             this._potManager.betFolded(foldingPlayer.betSize())
             foldingPlayer.takeFromBet(foldingPlayer.betSize())
             this._players[this.playerToAct()] = null
@@ -262,8 +262,8 @@ export default class Dealer {
     }
 
     endBettingRound(): void {
-        assert(!this._bettingRoundsCompleted, 'Betting rounds must not be completed')
-        assert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
+        pokerAssert(!this._bettingRoundsCompleted, 'Betting rounds must not be completed')
+        pokerAssert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
 
         this._potManager.collectBetsForm(this._players)
         if ((this._bettingRound?.numActivePlayers() ?? 0) <= 1) {
@@ -282,31 +282,31 @@ export default class Dealer {
             this._players = this._bettingRound?.players() ?? []
             this._bettingRound = new BettingRound([...this._players], this.nextOrWrap(this._button), this._forcedBets.blinds.big)
             this.dealCommunityCards()
-            assert(!this._bettingRoundsCompleted)
+            pokerAssert(!this._bettingRoundsCompleted, "Betting rounds must not be completed")
         } else {
-            assert(this._roundOfBetting === RoundOfBetting.RIVER)
+            pokerAssert(this._roundOfBetting === RoundOfBetting.RIVER, "Round of betting must be river")
             this._bettingRoundsCompleted = true
             // Now you call showdown()
         }
     }
 
     winners(): [SeatIndex, Hand, HoleCards][][] {
-        assert(!this.handInProgress(), 'Hand must not be in progress')
+        pokerAssert(!this.handInProgress(), 'Hand must not be in progress')
 
         return this._winners
     }
 
     showdown(): void {
-        assert(this._roundOfBetting === RoundOfBetting.RIVER, 'Round of betting must be river')
-        assert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
-        assert(this.bettingRoundsCompleted(), 'Betting rounds must be completed')
+        pokerAssert(this._roundOfBetting === RoundOfBetting.RIVER, 'Round of betting must be river')
+        pokerAssert(!this.bettingRoundInProgress(), 'Betting round must not be in progress')
+        pokerAssert(this.bettingRoundsCompleted(), 'Betting rounds must be completed')
 
         this._handInProgress = false
         if (this._potManager.pots().length === 1 && this._potManager.pots()[0].eligiblePlayers().length === 1) {
             // No need to evaluate the hand. There is only one player.
             const index = this._potManager.pots()[0].eligiblePlayers()[0]
             const player = this._players[index]
-            assert(player !== null)
+            pokerAssert(player !== null, "Player must not be null")
             player.addToStack(this._potManager.pots()[0].size())
             return
 
@@ -352,7 +352,7 @@ export default class Dealer {
                 while (oddChips !== 0) {
                     seat = nextOrWrap(winners, seat)
                     const winner = winners[seat]
-                    assert(winner !== null)
+                    pokerAssert(winner !== null, "Winner must not be null")
                     winner.addToStack(1)
                     oddChips--
                 }
@@ -389,11 +389,11 @@ export default class Dealer {
             seat = this.nextOrWrap(seat)
         }
         const smallBlind = this._players[seat]
-        assert(smallBlind !== null)
+        pokerAssert(smallBlind !== null, "Small blind player must not be null")
         smallBlind.bet(Math.min(this._forcedBets.blinds.small, smallBlind.totalChips()))
         seat = this.nextOrWrap(seat)
         const bigBlind = this._players[seat]
-        assert(bigBlind !== null)
+        pokerAssert(bigBlind !== null, "Big blind player must not be null")
         bigBlind.bet(Math.min(this._forcedBets.blinds.big, bigBlind.totalChips()))
         return seat
     }

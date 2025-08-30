@@ -1,4 +1,4 @@
-import assert from 'assert'
+import { pokerAssert } from '../util/assert'
 import { SeatIndex } from 'types/seat-index'
 import { Chips } from 'types/chips'
 import { SeatArray } from 'types/seat-array'
@@ -17,7 +17,7 @@ export default class Pot {
     }
 
     add(amount: Chips): void {
-        assert(amount >= 0, 'Cannot add a negative amount to the pot')
+        pokerAssert(amount >= 0, 'Cannot add a negative amount to the pot')
         this._size += amount
     }
 
@@ -37,7 +37,7 @@ export default class Pot {
         } else {
             // Find the smallest player bet on the table.
             const firstBetter = players[firstBetterIndex]
-            assert(firstBetter !== null)
+            pokerAssert(firstBetter !== null, 'First better player must exist')
             const minBet = players.slice(firstBetterIndex + 1).reduce((acc: Chips, player: Player | null ) => {
                 if (player !== null && player.betSize() !== 0 && player.betSize() < acc) acc = player.betSize()
                 return acc;
