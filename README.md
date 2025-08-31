@@ -1,4 +1,7 @@
 # Poker (TypeScript)
+
+This library is a fork and extension of poker-ts.
+
 Poker-ts is a poker game engine that can be used to serve Texas hold'em games for real players.
 
 ## Acknowledgment
